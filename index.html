@@ -1188,67 +1188,74 @@
   }
 
 
+  
+
+  
+
+  
+
+
+  // ── COUPON & COPY ─────────────────────────────────────────
   var appliedDiscount = 0;
   var appliedCouponCode = '';
-
   var coupons = {
-    'FIRST10': { type: 'percent', value: 10, label: '10% off' },
-    'WELCOME10': { type: 'percent', value: 10, label: '10% off' },
-    'SAVE75': { type: 'flat', value: 75, label: '₹75 off' },
-    'SAVE120': { type: 'flat', value: 120, label: '₹120 off' },
+    'FIRST10':   {pct:10, label:'10% off'},
+    'WELCOME10': {pct:10, label:'10% off'},
+    'SAVE75':    {flat:75, label:'Save ₹75'},
+    'SAVE120':   {flat:120, label:'Save ₹120'}
   };
+
+  function copyCode(code) {
+    var el = document.createElement('textarea');
+    el.value = code;
+    el.setAttribute('readonly', '');
+    el.style.position = 'absolute';
+    el.style.left = '-9999px';
+    document.body.appendChild(el);
+    el.select();
+    try { document.execCommand('copy'); } catch(e) {}
+    document.body.removeChild(el);
+    var btn = event.target;
+    var was = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(function(){ btn.textContent = was; }, 1500);
+  }
 
   function applyCoupon() {
     var inp = document.getElementById('coupon-input');
     var msg = document.getElementById('coupon-msg');
     if (!inp || !msg) return;
-    var code = inp.value.trim().toUpperCase();
-    var total = cart.reduce(function(s,i){ return s + i.price * i.qty; }, 0);
-
-    if (!code) {
-      msg.style.color = '#E24B4A';
-      msg.textContent = 'Please enter a coupon code.';
-      return;
-    }
-
-    if (coupons[code]) {
-      var c = coupons[code];
+    var code = inp.value.replace(/\s/g,'').toUpperCase();
+    if (!code) { msg.style.color='#E24B4A'; msg.textContent='Enter a code first.'; return; }
+    var sub = cart.reduce(function(s,i){return s+i.price*i.qty;},0);
+    var c = coupons[code];
+    if (c) {
       appliedCouponCode = code;
-      appliedDiscount = c.type === 'percent'
-        ? Math.round(total * c.value / 100)
-        : Math.min(c.value, total);
+      appliedDiscount = c.pct ? Math.round(sub*c.pct/100) : Math.min(c.flat, sub);
       msg.style.color = '#4CAF50';
       msg.textContent = '✓ ' + c.label + ' applied!';
-      updateModalTotal();
     } else {
       appliedDiscount = 0;
       appliedCouponCode = '';
       msg.style.color = '#E24B4A';
-      msg.textContent = '✗ Invalid code. Try FIRST10 or WELCOME10.';
-      updateModalTotal();
+      msg.textContent = '✗ Invalid code. Try FIRST10';
     }
+    refreshModalTotal();
   }
 
-  function updateModalTotal() {
-    var subtotal = cart.reduce(function(s,i){ return s + i.price * i.qty; }, 0);
-    var total = Math.max(0, subtotal - appliedDiscount);
-
-    var sub = document.getElementById('modal-subtotal');
-    var tot = document.getElementById('modal-total');
+  function refreshModalTotal() {
+    var sub = cart.reduce(function(s,i){return s+i.price*i.qty;},0);
+    var tot = Math.max(0, sub - appliedDiscount);
+    var subEl = document.getElementById('modal-subtotal');
+    var totEl = document.getElementById('modal-total');
     var discRow = document.getElementById('discount-row');
     var discAmt = document.getElementById('discount-amount');
-    var discLabel = document.getElementById('discount-code-label');
-
-    if (sub) sub.textContent = '₹' + subtotal.toLocaleString('en-IN');
-    if (tot) tot.textContent = '₹' + total.toLocaleString('en-IN');
-
-    if (appliedDiscount > 0) {
-      if (discRow) discRow.style.display = 'flex';
-      if (discAmt) discAmt.textContent = '− ₹' + appliedDiscount.toLocaleString('en-IN');
-      if (discLabel) discLabel.textContent = '(' + appliedCouponCode + ')';
-    } else {
-      if (discRow) discRow.style.display = 'none';
-    }
+    var discLbl = document.getElementById('discount-code-label');
+    if (subEl) subEl.textContent = '₹'+sub.toLocaleString('en-IN');
+    if (totEl) totEl.textContent = '₹'+tot.toLocaleString('en-IN');
+    if (discRow) discRow.style.display = appliedDiscount>0 ? 'flex' : 'none';
+    if (discAmt) discAmt.textContent = '−₹'+appliedDiscount.toLocaleString('en-IN');
+    if (discLbl) discLbl.textContent = '('+appliedCouponCode+')';
   }
 
 </script>
@@ -1349,11 +1356,11 @@
     const total=Math.max(0,cart.reduce((s,i)=>s+i.price*i.qty,0)-appliedDiscount);
     appliedDiscount = 0;
     appliedCouponCode = '';
-    var couponInput = document.getElementById('coupon-input');
-    var couponMsg = document.getElementById('coupon-msg');
-    if (couponInput) couponInput.value = '';
-    if (couponMsg) couponMsg.textContent = '';
-    updateModalTotal();
+    var ci = document.getElementById('coupon-input');
+    var cm = document.getElementById('coupon-msg');
+    if (ci) ci.value = '';
+    if (cm) cm.textContent = '';
+    refreshModalTotal();
   }
   function closeCheckout(){document.getElementById('checkout-modal').classList.remove('visible');document.body.style.overflow='';}
   function validateForm(){
