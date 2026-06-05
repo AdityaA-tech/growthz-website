@@ -1177,7 +1177,7 @@
     const name=document.getElementById('buyer-name').value.trim();
     const email=document.getElementById('buyer-email').value.trim();
     const phone=document.getElementById('buyer-phone').value.trim();
-    const options={key:'YOUR_RAZORPAY_KEY_ID',amount:total*100,currency:'INR',name:'Growthz Hair Fibers',description:cart.map(i=>`${i.name} (${i.shade}) ×${i.qty}`).join(', '),prefill:{name,email,contact:phone},theme:{color:'#C9A84C'},handler:function(r){closeCheckout();clearCart();alert(`✅ Payment successful! Order ID: ${r.razorpay_payment_id}\nWe'll confirm your order via WhatsApp/email within 24 hours.`);}};
+    const options={key:'rzp_live_Sy0EgPQuVxhF2x',amount:total*100,currency:'INR',name:'Growthz Hair Fibers',description:cart.map(i=>`${i.name} (${i.shade}) ×${i.qty}`).join(', '),prefill:{name,email,contact:phone},theme:{color:'#C9A84C'},handler:function(r){closeCheckout();clearCart();alert(`✅ Payment successful! Order ID: ${r.razorpay_payment_id}\nWe'll confirm your order via WhatsApp/email within 24 hours.`);}};
     if(typeof Razorpay==='undefined'){alert('Please add your Razorpay Key ID and contact growthzhaircare@gmail.com to place your order directly.');return;}
     new Razorpay(options).open();
   }
